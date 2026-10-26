@@ -1,0 +1,171 @@
+[
+  {
+    "id": "C1",
+    "inn": "001588139913",
+    "ogrn": "324008698797301",
+    "legal_form": "ИП",
+    "short": "Кофейня Зерно",
+    "bank_client_months": 20,
+    "financials": {
+      "revenue": 18000000,
+      "revenue_prev_year": 17000000,
+      "monthly_expenses": 1150000,
+      "existing_debt_payments": 200000
+    },
+    "request": {
+      "product": "EXPRESS",
+      "purpose": "WORKING_CAPITAL",
+      "amount": 4000000,
+      "term": 12
+    },
+    "documents_on_submit": [],
+    "anketa_overrides": {}
+  },
+  {
+    "id": "C2",
+    "inn": "0091141704",
+    "ogrn": "1200075364554",
+    "legal_form": "ООО",
+    "short": "ТрансЛогистик",
+    "bank_client_months": 0,
+    "financials": {
+      "revenue": 120000000,
+      "revenue_prev_year": 160000000,
+      "monthly_expenses": 5900000,
+      "existing_debt_payments": 4800000
+    },
+    "request": {
+      "product": "EXPRESS",
+      "purpose": "WORKING_CAPITAL",
+      "amount": 5000000,
+      "term": 12
+    },
+    "documents_on_submit": [
+      "TAX_RETURN"
+    ],
+    "anketa_overrides": {}
+  },
+  {
+    "id": "C3",
+    "inn": "0068151888",
+    "ogrn": "1210044729400",
+    "legal_form": "ООО",
+    "short": "Мебельная мастерская",
+    "bank_client_months": 0,
+    "financials": {
+      "revenue": 45000000,
+      "revenue_prev_year": 36000000,
+      "monthly_expenses": 2900000,
+      "existing_debt_payments": 300000
+    },
+    "request": {
+      "product": "INVEST",
+      "purpose": "EQUIPMENT",
+      "amount": 12000000,
+      "term": 48
+    },
+    "documents_on_submit": [
+      "FINANCIAL_STATEMENTS",
+      "PURCHASE_CONTRACT"
+    ],
+    "anketa_overrides": {}
+  },
+  {
+    "id": "C4",
+    "inn": "005576169886",
+    "ogrn": "325007168976849",
+    "legal_form": "ИП",
+    "short": "Сидоров. Ремонт",
+    "bank_client_months": 14,
+    "financials": {
+      "revenue": 8000000,
+      "revenue_prev_year": 7500000,
+      "monthly_expenses": 380000,
+      "existing_debt_payments": 220000
+    },
+    "request": {
+      "product": "EXPRESS",
+      "purpose": "WORKING_CAPITAL",
+      "amount": 1000000,
+      "term": 12
+    },
+    "documents_on_submit": [
+      "TAX_RETURN"
+    ],
+    "anketa_overrides": {
+      "address": "г. Условный, ул. Новая, д. 5"
+    }
+  },
+  {
+    "id": "C5",
+    "inn": "0069788091",
+    "ogrn": "1190032081964",
+    "legal_form": "ООО",
+    "short": "Ромашка-Ликвид",
+    "bank_client_months": 0,
+    "financials": {
+      "revenue": 5000000,
+      "revenue_prev_year": 9000000,
+      "monthly_expenses": 400000,
+      "existing_debt_payments": 0
+    },
+    "request": {
+      "product": "EXPRESS",
+      "purpose": "WORKING_CAPITAL",
+      "amount": 1000000,
+      "term": 12
+    },
+    "documents_on_submit": [
+      "TAX_RETURN"
+    ],
+    "anketa_overrides": {}
+  },
+  {
+    "id": "C6",
+    "inn": "0072731779",
+    "ogrn": "1220084864889",
+    "legal_form": "ООО",
+    "short": "Сбойный Источник",
+    "bank_client_months": 0,
+    "financials": {
+      "revenue": 30000000,
+      "revenue_prev_year": 28000000,
+      "monthly_expenses": 1900000,
+      "existing_debt_payments": 250000
+    },
+    "request": {
+      "product": "EXPRESS",
+      "purpose": "WORKING_CAPITAL",
+      "amount": 2000000,
+      "term": 12
+    },
+    "documents_on_submit": [
+      "TAX_RETURN"
+    ],
+    "anketa_overrides": {}
+  },
+  {
+    "id": "C7",
+    "inn": "0076634409",
+    "ogrn": "1220002978755",
+    "legal_form": "ООО",
+    "short": "Сезон-Опт",
+    "bank_client_months": 0,
+    "financials": {
+      "revenue": 72000000,
+      "revenue_prev_year": 66000000,
+      "monthly_expenses": 2700000,
+      "existing_debt_payments": 2880000
+    },
+    "request": {
+      "product": "EXPRESS",
+      "purpose": "CASH_GAP",
+      "amount": 5000000,
+      "term": 6
+    },
+    "documents_on_submit": [
+      "TAX_RETURN"
+    ],
+    "anketa_overrides": {}
+  }
+]

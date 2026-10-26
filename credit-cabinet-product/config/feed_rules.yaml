@@ -1,0 +1,296 @@
+# Правила персональной новостной ленты (docs/product/news_feed_rules.md).
+# Все тексты — синтетический демо-контент; не являются реальными новостями, условиями банка или госпрограмм.
+# Поля audience (все условия через И; значение-список — «одно из»):
+#   no_application: true|false · application_status: [..] · product: [..] · okved_prefix: [..]
+#   revenue_lt: число · legal_form: [ИП|ООО] · role: [owner|ceo|accountant|authorized]
+#   exclude_risk_class: [..] · exclude_product: [..]
+# Плейсхолдеры в текстах: {number} {product} {sla} {offer_expires} {items} {next_payment_date} {next_payment}
+version: "1.0"
+ranking:
+  type_priority: {ACTION: 100, STATUS: 80, OFFER: 50, TIP: 40, PROGRAM: 30, INDUSTRY: 20, SYSTEM: 10}
+  stage_match: 30          # карточка привязана к стадии/исходу заявки
+  industry_match: 20       # карточка привязана к ОКВЭД
+  freshness_per_day: 1     # −1 балл за день возраста карточки
+  already_seen: 15         # −15, если пользователь уже видел карточку
+  max_same_type_in_row: 2
+  max_cards: 8
+  pin_types: [ACTION]      # закрепляется сверху до выполнения действия
+
+cards:
+  # ---------------- ACTION: только когда процесс заблокирован и ждёт клиента
+  - id: act_answer_info_request
+    type: ACTION
+    title: "Банку нужны уточнения по заявке №{number}"
+    body: "Не хватает: {items}. Загрузите прямо в кабинете — без этого решение не будет принято."
+    cta: {label: "Ответить на запрос", target: "S-07"}
+    audience: {application_status: [NEEDS_INFO]}
+    reason: "Заявка ждёт вашего ответа"
+    ttl_days: 14
+  - id: act_finish_draft
+    type: ACTION
+    title: "Заявка №{number} не отправлена"
+    body: "Черновик сохранён — продолжите с того места, где остановились."
+    cta: {label: "Продолжить", target: "S-05"}
+    audience: {application_status: [DRAFT]}
+    reason: "У вас есть незавершённый черновик"
+    ttl_days: 30
+
+  # ---------------- STATUS: шаблоны, создаются из ApplicationEvent (тексты = docs/process/state_machine.md)
+  - id: st_submitted
+    type: STATUS
+    title: "Заявка №{number} принята"
+    body: "Проверяем, всё ли заполнено. Это займёт несколько минут."
+    audience: {application_status: [SUBMITTED, VALIDATING]}
+    reason: "Вы только что отправили заявку"
+  - id: st_enriching
+    type: STATUS
+    title: "Проверяем данные о компании"
+    body: "Сверяем сведения из открытых реестров и кредитной истории. Ничего делать не нужно."
+    audience: {application_status: [ENRICHING]}
+    reason: "Ваша заявка на этапе проверки данных"
+  - id: st_scoring
+    type: STATUS
+    title: "Заявка №{number} на оценке"
+    body: "Обычно это занимает до {sla}. Мы сообщим о решении здесь, в кабинете."
+    audience: {application_status: [SCORING, DECISION_PENDING]}
+    reason: "Ваша заявка на этапе оценки"
+  - id: st_manual_review
+    type: STATUS
+    title: "Заявку изучает специалист"
+    body: "Для этой заявки нужна экспертная оценка. Ожидаемое время — до {sla}."
+    audience: {application_status: [MANUAL_REVIEW]}
+    reason: "Вашу заявку рассматривает специалист банка"
+  - id: st_approved
+    type: STATUS
+    title: "Заявка №{number} одобрена"
+    body: "Проверьте условия и примите предложение до {offer_expires}."
+    cta: {label: "Посмотреть условия", target: "S-08"}
+    audience: {application_status: [APPROVED]}
+    reason: "По вашей заявке есть решение"
+  - id: st_offer_changes
+    type: STATUS
+    title: "Есть предложение по заявке №{number}"
+    body: "Мы готовы выдать кредит на других условиях. Предложение действует до {offer_expires}."
+    cta: {label: "Сравнить условия", target: "S-08"}
+    audience: {application_status: [APPROVED_WITH_CHANGES]}
+    reason: "По вашей заявке есть решение"
+  - id: st_rejected
+    type: STATUS
+    title: "Решение по заявке №{number}"
+    body: "Сейчас не можем одобрить. Посмотрите причины и что можно сделать."
+    cta: {label: "Посмотреть причины", target: "S-08"}
+    audience: {application_status: [REJECTED]}
+    reason: "По вашей заявке есть решение"
+  - id: st_signing
+    type: STATUS
+    title: "Осталось подписать договор"
+    body: "Проверьте договор и подтвердите подпись кодом на экране."
+    cta: {label: "Перейти к подписанию", target: "S-09"}
+    audience: {application_status: [SIGNING]}
+    reason: "Вы приняли предложение"
+  - id: st_disbursed
+    type: STATUS
+    title: "Кредит выдан"
+    body: "Деньги зачислены (демо). Ближайший платёж {next_payment} — {next_payment_date}."
+    cta: {label: "График платежей", target: "S-10"}
+    audience: {application_status: [DISBURSED]}
+    reason: "Кредит по вашей заявке выдан"
+
+  # ---------------- TIP: подсказки по стадии пути
+  - id: tip_how_to_choose
+    type: TIP
+    title: "Как выбрать кредит под задачу"
+    body: "Разовая покупка — кредит на срок, регулярные разрывы — кредитная линия, оборудование — инвест-кредит."
+    audience: {no_application: true}
+    priority_boost: 40
+    reason: "Вы ещё не подавали заявок"
+  - id: tip_documents_ready
+    type: TIP
+    title: "Какие документы подготовить заранее"
+    body: "Для большинства продуктов хватит налоговой декларации за последний год."
+    audience: {no_application: true}
+    reason: "Вы ещё не подавали заявок"
+    age_days: 5
+  - id: tip_what_we_check
+    type: TIP
+    title: "Что банк проверяет в заявке"
+    body: "Полноту анкеты, данные о компании из реестров и кредитную историю."
+    audience: {application_status: [SUBMITTED, VALIDATING, ENRICHING]}
+    reason: "Ваша заявка на этапе проверки данных"
+  - id: tip_debt_load
+    type: TIP
+    title: "Как банк оценивает долговую нагрузку"
+    body: "Долговая нагрузка — доля выручки, которая уходит на платежи по кредитам. Комфортно — до 30%."
+    audience: {application_status: [SCORING, DECISION_PENDING, MANUAL_REVIEW]}
+    priority_boost: 30
+    reason: "Ваша заявка сейчас на этапе оценки"
+  - id: tip_info_request_howto
+    type: TIP
+    title: "Как быстро ответить на запрос банка"
+    body: "Подойдут PDF, JPG или PNG до 10 МБ. Сканы — чёткие, все страницы."
+    audience: {application_status: [NEEDS_INFO]}
+    reason: "Банк запросил у вас уточнения"
+  - id: tip_compare_offer
+    type: TIP
+    title: "Как сравнить условия"
+    body: "Смотрите на ежемесячный платёж и общую переплату, а не только на ставку."
+    audience: {application_status: [APPROVED, APPROVED_WITH_CHANGES]}
+    priority_boost: 20
+    reason: "Вам пришло предложение по заявке"
+  - id: tip_prepare_signing
+    type: TIP
+    title: "Как подготовиться к подписанию"
+    body: "Проверьте сумму, срок и дату платежа в договоре. Подпись в демо-режиме юридической силы не имеет."
+    audience: {application_status: [APPROVED, SIGNING]}
+    reason: "Скоро подписание договора"
+  - id: tip_increase_chances
+    type: TIP
+    title: "Как повысить шансы на одобрение"
+    body: "Снизьте текущую долговую нагрузку, закройте просрочки и подайте заявку через 3 месяца."
+    audience: {application_status: [REJECTED]}
+    priority_boost: 30
+    reason: "По вашей заявке пришёл отказ"
+  - id: tip_payment_reminder
+    type: TIP
+    title: "Как не пропустить платёж"
+    body: "Платёж списывается с расчётного счёта в дату по графику — держите сумму на счёте за день."
+    audience: {application_status: [DISBURSED]}
+    priority_boost: 20
+    reason: "У вас есть действующий кредит"
+  - id: tip_collateral
+    type: TIP
+    title: "Залог при инвест-кредите: что важно"
+    body: "Залогом станет покупаемое оборудование. Специалист проверит договор купли-продажи."
+    audience: {product: [INVEST], application_status: [SUBMITTED, VALIDATING, ENRICHING, SCORING, DECISION_PENDING, MANUAL_REVIEW, NEEDS_INFO]}
+    reason: "Вы оформляете инвест-кредит"
+  - id: tip_line_how_it_works
+    type: TIP
+    title: "Как работает кредитная линия"
+    body: "Берёте нужную часть лимита, гасите — лимит снова доступен. Проценты только на взятую сумму."
+    audience: {product: [LINE]}
+    reason: "Вам подходит кредитная линия"
+  - id: tip_ip_reporting
+    type: TIP
+    title: "Как подготовить отчётность ИП"
+    body: "Для ИП на УСН достаточно декларации за год и книги учёта доходов."
+    audience: {legal_form: [ИП], revenue_lt: 10000000}
+    reason: "Вы ИП с оборотом до 10 млн ₽"
+  - id: tip_accountant_checklist
+    type: TIP
+    title: "Чек-лист документов для бухгалтера"
+    body: "Бухотчётность, договор на покупку имущества, доверенность, если подписывает не руководитель."
+    audience: {role: [accountant]}
+    reason: "Вы оформляете заявки как бухгалтер компании"
+
+  # ---------------- OFFER: продуктовые рекомендации (не показываются классу риска D)
+  - id: offer_express_food_retail
+    type: OFFER
+    title: "Экспресс-оборотка — деньги на закупки за 1 день"
+    body: "До 5 млн ₽ без залога. Решение — обычно в течение 4 часов."
+    cta: {label: "Рассчитать", target: "S-04?product=EXPRESS"}
+    audience: {no_application: true, okved_prefix: ["56.", "47.", "10."], exclude_risk_class: [D]}
+    reason: "Подходит для бизнеса в вашей отрасли"
+  - id: offer_line_wholesale
+    type: OFFER
+    title: "Для сезонных закупок подойдёт кредитная линия"
+    body: "Лимит до 15 млн ₽, проценты — только на использованную часть."
+    cta: {label: "Подробнее", target: "S-04?product=LINE"}
+    audience: {no_application: true, okved_prefix: ["46.", "45."], exclude_risk_class: [D]}
+    reason: "Подходит для оптовой торговли"
+  - id: offer_invest_production
+    type: OFFER
+    title: "Обновить оборудование — инвест-кредит до 30 млн ₽"
+    body: "Срок до 5 лет, залог — само оборудование."
+    cta: {label: "Подробнее", target: "S-04?product=INVEST"}
+    audience: {no_application: true, okved_prefix: ["31.", "25.", "16.", "10."], exclude_risk_class: [D]}
+    reason: "Подходит для производства"
+  - id: offer_line_after_disbursed
+    type: OFFER
+    title: "Чтобы закрывать кассовые разрывы — кредитная линия"
+    body: "Можно оформить в дополнение к действующему кредиту."
+    cta: {label: "Подробнее", target: "S-04?product=LINE"}
+    audience: {application_status: [DISBURSED], exclude_product: [LINE], exclude_risk_class: [D]}
+    reason: "Клиентам с действующим кредитом"
+    age_days: 3
+  - id: offer_smaller_amount_after_reject
+    type: OFFER
+    title: "Попробуйте меньшую сумму или более длинный срок"
+    body: "Калькулятор подскажет платёж, который не перегрузит бюджет."
+    cta: {label: "Подобрать вариант", target: "S-03"}
+    audience: {application_status: [REJECTED], exclude_risk_class: [D]}
+    reason: "По вашей заявке пришёл отказ"
+
+  # ---------------- PROGRAM: господдержка [ДОПУЩЕНИЕ] — синтетика, без утверждений о реальных условиях
+  - id: prog_guarantee_after_reject
+    type: PROGRAM
+    title: "Поручительство фонда поддержки МСП (демо)"
+    body: "Если не хватает залога или кредитной истории, поручительство может повысить шансы. Условия уточняйте у специалиста."
+    audience: {application_status: [REJECTED]}
+    priority_boost: 20
+    reason: "Может помочь при повторной заявке"
+  - id: prog_production_leasing
+    type: PROGRAM
+    title: "Программы поддержки обрабатывающих производств (демо)"
+    body: "Обзор типов господдержки для производств: субсидирование ставки, поручительства, лизинг."
+    audience: {okved_prefix: ["31.", "25.", "16.", "10."]}
+    reason: "Для бизнеса в вашей отрасли"
+    age_days: 7
+
+  # ---------------- INDUSTRY: отраслевые новости (синтетика)
+  - id: ind_food_marking
+    type: INDUSTRY
+    title: "Общепит: что меняется в маркировке продукции с 1 ноября (демо)"
+    body: "Кратко о новых требованиях к учёту молочной продукции в кафе."
+    audience: {okved_prefix: ["56."]}
+    reason: "Новости вашей отрасли — общепит"
+    age_days: 2
+  - id: ind_food_winter
+    type: INDUSTRY
+    title: "Кофейни: как пережить спад трафика зимой (демо)"
+    body: "Три способа удержать выручку: доставка, корпоративные заказы, сезонное меню."
+    audience: {okved_prefix: ["56."]}
+    reason: "Новости вашей отрасли — общепит"
+    age_days: 6
+  - id: ind_logistics_waybills
+    type: INDUSTRY
+    title: "Грузоперевозки: переход на электронные путевые листы (демо)"
+    body: "Что нужно сделать перевозчику и сколько это стоит."
+    audience: {okved_prefix: ["49."]}
+    reason: "Новости вашей отрасли — логистика"
+    age_days: 1
+  - id: ind_logistics_fuel
+    type: INDUSTRY
+    title: "Логистика: как считать топливную надбавку в договорах (демо)"
+    body: "Пример формулы и типичные ошибки."
+    audience: {okved_prefix: ["49."]}
+    reason: "Новости вашей отрасли — логистика"
+    age_days: 9
+  - id: ind_furniture_materials
+    type: INDUSTRY
+    title: "Мебельщикам: прогноз цен на плитные материалы (демо)"
+    body: "Когда выгоднее закупаться на сезон."
+    audience: {okved_prefix: ["31."]}
+    reason: "Новости вашей отрасли — производство мебели"
+    age_days: 3
+  - id: ind_wholesale_season
+    type: INDUSTRY
+    title: "Оптовая торговля: календарь сезонных закупок (демо)"
+    body: "Пики спроса по категориям и когда закладывать запасы."
+    audience: {okved_prefix: ["46."]}
+    reason: "Новости вашей отрасли — опт"
+    age_days: 4
+  - id: ind_repair_demand
+    type: INDUSTRY
+    title: "Ремонт и отделка: спрос растёт перед праздниками (демо)"
+    body: "Как подготовиться к пиковому сезону заказов."
+    audience: {okved_prefix: ["43."]}
+    reason: "Новости вашей отрасли — ремонт"
+    age_days: 2
+
+  # ---------------- SYSTEM
+  - id: sys_demo_mode
+    type: SYSTEM
+    title: "Демо-стенд: все данные синтетические"
+    body: "Подписание и выдача — имитация, реальных операций нет."
+    audience: {}
+    reason: "Сервисное сообщение"

@@ -1,0 +1,116 @@
+# Правила скоринга и кредитной политики. Реализуются как конфиг, версия пишется в каждый ScoringResult.
+# [ДОПУЩЕНИЕ] Веса, пороги и лимиты синтетические (см. docs/process/scoring_and_decision.md).
+# Направления влияния факторов — по PDF кейса, с. 14.
+rules_version: "2026.10-v1"
+
+stop_factors:
+  - code: SF-01
+    source: EGRUL
+    condition: "company.status in [LIQUIDATING, LIQUIDATED, BANKRUPTCY]"
+    client_text: "По данным реестра компания ликвидируется или находится в процедуре банкротства"
+  - code: SF-02
+    source: BKI
+    condition: "bki.current_overdue_days > 90"
+    client_text: "Есть текущая просрочка по кредитам больше 90 дней"
+  - code: SF-03
+    source: EGRUL
+    condition: "company.age_months < 3"
+    client_text: "Бизнес зарегистрирован менее 3 месяцев назад"
+  - code: SF-04
+    source: TRANSPARENT_BUSINESS
+    condition: "any(person.disqualified for person in company.persons)"
+    client_text: "Руководитель или учредитель числится в реестре дисквалифицированных лиц"
+
+scorecard:
+  base: 500
+  factors:
+    - code: AGE
+      title: "Срок деятельности"
+      bands:
+        - {when: "age_years < 1",            points: -40, client: "Бизнес работает меньше года",            expert: "Срок деятельности < 1 года"}
+        - {when: "1 <= age_years <= 3",      points: 0,   client: null,                                    expert: "Срок деятельности 1–3 года"}
+        - {when: "age_years > 3",            points: 40,  client: "Бизнес давно и стабильно работает",      expert: "Срок деятельности > 3 лет"}
+    - code: REVENUE
+      title: "Годовая выручка"
+      bands:
+        - {when: "revenue < 10_000_000",                 points: -20, client: "Небольшой годовой оборот",        expert: "Выручка < 10 млн ₽"}
+        - {when: "10_000_000 <= revenue <= 60_000_000",  points: 10,  client: null,                              expert: "Выручка 10–60 млн ₽"}
+        - {when: "revenue > 60_000_000",                 points: 30,  client: "Крупный годовой оборот",          expert: "Выручка > 60 млн ₽"}
+    - code: REVENUE_TREND
+      title: "Динамика выручки г/г"
+      bands:
+        - {when: "trend < -0.20",            points: -40, client: "Выручка заметно снизилась за год",       expert: "Падение выручки > 20% г/г"}
+        - {when: "-0.20 <= trend <= 0.20",   points: 0,   client: null,                                    expert: "Выручка стабильна (±20%)"}
+        - {when: "trend > 0.20",             points: 25,  client: "Выручка растёт",                         expert: "Рост выручки > 20% г/г"}
+    - code: DEBT_LOAD
+      title: "Долговая нагрузка (все платежи + новый / среднемесячная выручка)"
+      bands:
+        - {when: "load > 0.50",              points: -80, client: "Высокая текущая долговая нагрузка",       expert: "Нагрузка > 50%"}
+        - {when: "0.30 <= load <= 0.50",     points: -20, client: "Заметная долговая нагрузка",              expert: "Нагрузка 30–50%"}
+        - {when: "load < 0.30",              points: 30,  client: "Комфортная долговая нагрузка",            expert: "Нагрузка < 30%"}
+    - code: CREDIT_HISTORY
+      title: "Кредитная история [MOCK БКИ]"
+      bands:
+        - {when: "not bki.has_history",                  points: 0,    client: null,                                   expert: "Кредитной истории нет"}
+        - {when: "bki.worst_overdue_12m >= 30",          points: -100, client: "Были просрочки по кредитам за последний год", expert: "Просрочки 30–90 дн. за 12 мес."}
+        - {when: "1 <= bki.worst_overdue_12m <= 29",     points: -30,  client: "Были небольшие задержки платежей",     expert: "Просрочки 1–29 дн. за 12 мес."}
+        - {when: "bki.worst_overdue_12m == 0",           points: 50,   client: "Хорошая кредитная история",            expert: "Просрочек нет"}
+    - code: BKI_INQUIRIES
+      title: "Запросы в БКИ за 30 дней"
+      bands:
+        - {when: "bki.inquiries_30d > 5",    points: -30, client: "Много недавних обращений за кредитами",  expert: "> 5 запросов в БКИ за 30 дней"}
+        - {when: "bki.inquiries_30d <= 5",   points: 0,   client: null,                                    expert: "≤ 5 запросов в БКИ"}
+    - code: INDUSTRY
+      title: "Отрасль по ОКВЭД"
+      high_risk_okved_prefixes: ["41.", "42.", "49.41", "68.", "92."]
+      low_risk_okved_prefixes: ["62.", "85.", "86.", "47.73"]
+      bands:
+        - {when: "okved in high_risk",       points: -30, client: "Отрасль с повышенными рисками",          expert: "ОКВЭД повышенного риска"}
+        - {when: "otherwise",                points: 0,   client: null,                                    expert: "Обычная отрасль"}
+        - {when: "okved in low_risk",        points: 15,  client: "Отрасль с низкими рисками",              expert: "ОКВЭД низкого риска"}
+    - code: DISCREPANCY
+      title: "Расхождения анкеты и реестра"
+      compared_fields: [name, address, okved, director]
+      bands:
+        - {when: "has_discrepancy",          points: -25, client: "Данные в заявке отличаются от данных реестра", expert: "Расхождение анкеты и реестра"}
+        - {when: "otherwise",                points: 0,   client: null,                                    expert: "Расхождений нет"}
+    - code: BANK_CLIENT          # [ДОПУЩЕНИЕ] [MOCK внутренние данные банка]
+      title: "Клиент банка (расчётный счёт)"
+      bands:
+        - {when: "bank_client_months > 6",   points: 30,  client: "Вы давно обслуживаетесь в банке",        expert: "Р/с в банке > 6 мес."}
+        - {when: "otherwise",                points: 0,   client: null,                                    expert: "Не клиент / < 6 мес."}
+
+  # Нагрузка при скоринге считается с платежом по БАЗОВОЙ ставке продукта на запрошенные сумму и срок
+  # (класс риска ещё не известен). Оффер пересчитывается по ставке с надбавкой за класс.
+  load_rate: BASE
+
+risk_classes:            # нижняя граница включительно
+  A: 600
+  B: 520
+  C: 440
+  D: -9999
+
+rate_markup_pp: {A: 0, B: 2, C: 4}
+
+policy:
+  max_debt_load: 0.50
+  rounding_step: 50000         # суммы контроффера округляются вниз до 50 000 ₽
+  offer_ttl_days: 10
+  info_request_ttl_days: 14
+  # Матрица: исход по классу и продукту. cap — максимальная сумма авто-решения для класса.
+  matrix:
+    EXPRESS: {A: {route: AUTO, cap: 5000000},  B: {route: AUTO, cap: 3000000}, C: {route: MANUAL}, D: {route: REJECT}}
+    INVEST:  {A: {route: MANUAL, reason: COLLATERAL}, B: {route: MANUAL, reason: COLLATERAL}, C: {route: MANUAL}, D: {route: REJECT}}
+    LINE:    {A: {route: AUTO, cap: 10000000}, B: {route: AUTO, cap: 5000000}, C: {route: MANUAL}, D: {route: REJECT}}
+  # Порядок подбора контроффера для route = AUTO (docs/process/scoring_and_decision.md, §5):
+  counter_offer_steps:
+    - CAP_BY_CLASS         # кандидат = min(запрошено, cap класса)
+    - FIT_AS_IS            # нагрузка ≤ 50% → APPROVED (или AMOUNT, если сработал cap)
+    - EXTEND_TERM          # минимальный срок ≤ max_term продукта, при котором нагрузка ≤ 50% → TERM
+    - ALTERNATIVE_PRODUCT  # продукт из alternatives покрывает запрошенную сумму (с cap класса) → PRODUCT
+    - REDUCE_AMOUNT        # макс. сумма на max_term ≥ min_amount → AMOUNT
+    - REJECT               # иначе REJECTED с кодом DEBT_LOAD
+  manual_reasons:
+    COLLATERAL: "Нужна оценка залога специалистом"
+    GREY_ZONE: "Класс риска C — нужна экспертная оценка"
+    INCOMPLETE_DATA: "Не все источники данных ответили"

@@ -1,0 +1,82 @@
+[
+  {
+    "login": "anna@demo.local",
+    "role": "CLIENT",
+    "full_name": "Зернова Анна Сергеевна",
+    "password_hash": "$2b$10$/Mad0oKnf0fC/DphLPKEYOzEjHJSBHipNGqvJBn80QDEOcz.za0my",
+    "memberships": [
+      {
+        "company": "C1",
+        "role": "owner"
+      }
+    ],
+    "purpose": "Главный демо-путь, лента"
+  },
+  {
+    "login": "igor@demo.local",
+    "role": "CLIENT",
+    "full_name": "Грузов Игорь Павлович",
+    "password_hash": "$2b$10$qcgAxwUtNDwB9X2Hl6IVNedGSRFzWWtfh9ACwhBn124.gfvM7cFla",
+    "memberships": [
+      {
+        "company": "C2",
+        "role": "ceo"
+      }
+    ],
+    "purpose": "Авто-отказ, лента после отказа"
+  },
+  {
+    "login": "marina@demo.local",
+    "role": "CLIENT",
+    "full_name": "Счётова Марина Игоревна",
+    "password_hash": "$2b$10$7Kx/Crw8h/5k7RyLFqCcS.CQZn/8fC65R.6yDomRxCUdjJJMp41GK",
+    "memberships": [
+      {
+        "company": "C3",
+        "role": "accountant"
+      }
+    ],
+    "purpose": "Ручное рассмотрение, роль бухгалтера"
+  },
+  {
+    "login": "sidorov@demo.local",
+    "role": "CLIENT",
+    "full_name": "Сидоров Олег Викторович",
+    "password_hash": "$2b$10$hKwmh3uakdzQ4JXWqVnb7ufnWxy2Ro.KlxWlKfAs89kzYJOf.wn2C",
+    "memberships": [
+      {
+        "company": "C4",
+        "role": "owner"
+      },
+      {
+        "company": "C5",
+        "role": "authorized"
+      },
+      {
+        "company": "C6",
+        "role": "authorized"
+      },
+      {
+        "company": "C7",
+        "role": "authorized"
+      }
+    ],
+    "purpose": "Негативные и пограничные сценарии"
+  },
+  {
+    "login": "expert@demo.local",
+    "role": "EXPERT",
+    "full_name": "Экспертова Вера Николаевна",
+    "password_hash": "$2b$10$hhpFwqCSnrqRrynGwVvGvexEyzOZcJxfOcZzM8U9fRvElKBNPoPO6",
+    "memberships": [],
+    "purpose": "Очередь и решения"
+  },
+  {
+    "login": "admin@demo.local",
+    "role": "ADMIN",
+    "full_name": "Админов Лев Борисович",
+    "password_hash": "$2b$10$bVGISJOLppakjSRfjaAeSOqhVvLcyskQwYtBoG9de/pZxDJkSnMYq",
+    "memberships": [],
+    "purpose": "Дашборд, аудит, сброс демо"
+  }
+]

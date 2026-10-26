@@ -1,0 +1,71 @@
+# Каталог кредитных продуктов MVP.
+# [ДОПУЩЕНИЕ] Все ставки, лимиты и требования синтетические и НЕ являются публичными условиями АО «Альфа-Банк».
+# Источник требований: docs/product/02_mvp_scope.md, docs/process/scoring_and_decision.md
+version: "1.0"
+products:
+  - code: EXPRESS
+    name: "Экспресс-оборотка"
+    purposes: [WORKING_CAPITAL, CASH_GAP]
+    description: "Быстрые деньги на закупки, зарплаты и текущие расходы без залога."
+    min_amount: 300000
+    max_amount: 5000000
+    min_term: 3
+    max_term: 24
+    base_rate: 22.0            # % годовых
+    collateral_required: false
+    payment_model: ANNUITY
+    required_documents: [TAX_RETURN]
+    alternatives: [LINE]       # куда можно предложить переход (changeType = PRODUCT)
+    sla_hours: 4               # ожидаемое время рассмотрения для клиента
+  - code: INVEST
+    name: "Инвест-кредит"
+    purposes: [EQUIPMENT]
+    description: "Покупка оборудования и транспорта. Купленное имущество становится залогом."
+    min_amount: 1000000
+    max_amount: 30000000
+    min_term: 12
+    max_term: 60
+    base_rate: 19.0
+    collateral_required: true
+    payment_model: ANNUITY
+    required_documents: [FINANCIAL_STATEMENTS, PURCHASE_CONTRACT]
+    alternatives: []
+    sla_hours: 48
+  - code: LINE
+    name: "Кредитная линия"
+    purposes: [CASH_GAP, WORKING_CAPITAL]
+    description: "Лимит, которым можно пользоваться частями. Проценты — только на использованную сумму."
+    min_amount: 500000
+    max_amount: 15000000
+    min_term: 12
+    max_term: 36
+    base_rate: 21.0
+    collateral_required: false
+    payment_model: INTEREST_ONLY   # [ДОПУЩЕНИЕ] нагрузка считается как проценты на весь лимит в месяц
+    required_documents: [TAX_RETURN]
+    alternatives: [EXPRESS]
+    sla_hours: 8
+
+purposes:
+  WORKING_CAPITAL: "Пополнить оборотные средства"
+  EQUIPMENT: "Купить оборудование или транспорт"
+  CASH_GAP: "Закрыть кассовые разрывы / сезонные закупки"
+  OTHER: "Другое"
+
+# Порядок рекомендаций мастера потребности (S-03): первая — основная, остальные — «тоже подойдёт».
+recommendations:
+  WORKING_CAPITAL: [EXPRESS, LINE]
+  EQUIPMENT: [INVEST]
+  CASH_GAP: [LINE, EXPRESS]
+  OTHER: [EXPRESS, LINE, INVEST]
+
+documents:
+  TAX_RETURN: "Налоговая декларация за последний год (для ИП на УСН — декларация УСН)"
+  FINANCIAL_STATEMENTS: "Бухгалтерская (финансовая) отчётность за последний год"
+  PURCHASE_CONTRACT: "Договор или счёт на покупку оборудования / транспорта"
+  ADDRESS_PROOF: "Документ, подтверждающий адрес ведения бизнеса (договор аренды и т. п.)"
+  OTHER: "Иной документ по запросу специалиста"
+
+upload_limits:
+  max_size_mb: 10
+  mime_types: [application/pdf, image/jpeg, image/png]

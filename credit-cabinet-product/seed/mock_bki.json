@@ -1,0 +1,53 @@
+{
+  "001588139913": {
+    "mode": "OK",
+    "has_history": true,
+    "worst_overdue_12m": 0,
+    "current_overdue_days": 0,
+    "inquiries_30d": 1,
+    "active_loans": 1
+  },
+  "0091141704": {
+    "mode": "OK",
+    "has_history": true,
+    "worst_overdue_12m": 45,
+    "current_overdue_days": 0,
+    "inquiries_30d": 7,
+    "active_loans": 5
+  },
+  "0068151888": {
+    "mode": "OK",
+    "has_history": true,
+    "worst_overdue_12m": 0,
+    "current_overdue_days": 0,
+    "inquiries_30d": 2,
+    "active_loans": 1
+  },
+  "005576169886": {
+    "mode": "OK",
+    "has_history": false,
+    "worst_overdue_12m": 0,
+    "current_overdue_days": 0,
+    "inquiries_30d": 0,
+    "active_loans": 0
+  },
+  "0069788091": {
+    "mode": "OK",
+    "has_history": true,
+    "worst_overdue_12m": 0,
+    "current_overdue_days": 0,
+    "inquiries_30d": 0,
+    "active_loans": 0
+  },
+  "0072731779": {
+    "mode": "TIMEOUT"
+  },
+  "0076634409": {
+    "mode": "OK",
+    "has_history": true,
+    "worst_overdue_12m": 0,
+    "current_overdue_days": 0,
+    "inquiries_30d": 2,
+    "active_loans": 4
+  }
+}
